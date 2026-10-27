@@ -7,17 +7,44 @@ import {
   SlidersHorizontal,
   MessageSquarePlus,
   UserRound,
-  PanelRight,
   X,
   Paperclip,
   FileText,
   SendHorizontal,
   Check,
   CheckCheck,
+  ChevronLeft,
 } from 'lucide-react';
 import { ziqxUi } from '@/lib/ui';
 import { Conversation, MessageTemplate, Contact } from '@/types';
+import { ContactDrawer } from '@/components/contacts/ContactDrawer';
 import { NewMessageModal } from './NewMessageModal';
+
+function contactFromConversation(conv: Conversation): Contact {
+  return {
+    id: conv.contactId || conv.id,
+    name: conv.name,
+    phone: conv.phone,
+    email: '',
+    category: conv.category,
+    label: null,
+    savedOn: '—',
+    leadSource: 'WhatsApp',
+    campaign: '—',
+    interestedService: conv.category,
+    assignedAgent: '—',
+    added: '—',
+    lastInteraction: '—',
+    nextFollowUp: '—',
+    tags: [],
+    notes: [],
+    initials: conv.initials,
+    avatarBg: conv.avatarBg,
+    avatarColor: conv.avatarColor,
+    consent: true,
+    status: conv.status,
+  };
+}
 
 interface InboxPageProps {
   conversations: Conversation[];
@@ -26,7 +53,8 @@ interface InboxPageProps {
   onSendMessage: (conversationId: string, text: string, isTemplate?: boolean, templateName?: string) => void;
   activeConversationId?: string;
   onSelectConversation?: (id: string) => void;
-  onOpenContactDetails?: (contact: Contact) => void;
+  onCloseConversation?: () => void;
+  onUpdateContact?: (contact: Contact) => void;
   onStartNewChat?: (phone: string, name: string) => void;
   onOpenWhatsApp?: (contact: Contact) => void;
   onStartBroadcast?: (name: string, categories: string[], labels: string[], matchedCount: number) => void;
@@ -39,13 +67,15 @@ export const InboxPage: React.FC<InboxPageProps> = ({
   onSendMessage,
   activeConversationId,
   onSelectConversation,
-  onOpenContactDetails,
+  onCloseConversation,
+  onUpdateContact,
   onStartNewChat,
   onOpenWhatsApp,
   onStartBroadcast,
 }) => {
-  const [selectedId, setSelectedId] = useState<string>(
-    activeConversationId || conversations[0]?.id || ''
+  const [selectedId, setSelectedId] = useState<string>(activeConversationId || '');
+  const [mobilePane, setMobilePane] = useState<'list' | 'thread'>(
+    activeConversationId ? 'thread' : 'list'
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [inputText, setInputText] = useState('');
@@ -53,16 +83,21 @@ export const InboxPage: React.FC<InboxPageProps> = ({
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [detailsContact, setDetailsContact] = useState<Contact | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (activeConversationId) {
       setSelectedId(activeConversationId);
+      setMobilePane('thread');
+      return;
     }
+    setSelectedId('');
+    setMobilePane('list');
   }, [activeConversationId]);
 
-  const activeConv = conversations.find((c) => c.id === selectedId) || conversations[0];
+  const activeConv = conversations.find((c) => c.id === selectedId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,6 +121,20 @@ export const InboxPage: React.FC<InboxPageProps> = ({
     setIsTemplateDropdownOpen(false);
   };
 
+  const selectConversation = (id: string) => {
+    setSelectedId(id);
+    setMobilePane('thread');
+    if (onSelectConversation) onSelectConversation(id);
+  };
+
+  const closeConversation = () => {
+    setSelectedId('');
+    setMobilePane('list');
+    setIsTemplateDropdownOpen(false);
+    setDetailsContact(null);
+    if (onCloseConversation) onCloseConversation();
+  };
+
   const filteredConversations = conversations.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,29 +152,40 @@ export const InboxPage: React.FC<InboxPageProps> = ({
     Lost: 'bg-ziqx-badge-red text-ziqx-badge-red-text',
   };
 
-  const openContact = () => {
-    if (!activeConv) return;
-    const match = contacts.find(
-      (c) => c.phone === activeConv.phone || c.name === activeConv.name
+  const resolveContact = (conv: Conversation): Contact => {
+    const byId = contacts.find((c) => c.id === conv.contactId);
+    if (byId) return byId;
+    const clean = conv.phone.replace(/\D/g, '').slice(-10);
+    const byPhone = contacts.find(
+      (c) => c.phone.replace(/\D/g, '').slice(-10) === clean
     );
-    if (match && onOpenContactDetails) {
-      onOpenContactDetails(match);
-    }
+    if (byPhone) return byPhone;
+    const byName = contacts.find((c) => c.name === conv.name);
+    if (byName) return byName;
+    return contactFromConversation(conv);
   };
+
+  const openContactDetails = () => {
+    if (!activeConv) return;
+    setDetailsContact(resolveContact(activeConv));
+  };
+
+  const showList = mobilePane === 'list';
+  const showThread = mobilePane === 'thread';
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden relative">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-[18px] shrink-0">
-        <div>
-          <h1 className="text-[30px] font-bold leading-[33px] tracking-[-0.84px] text-ziqx-dark">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-3 sm:mb-[18px] shrink-0">
+        <div className="min-w-0">
+          <h1 className="text-[24px] sm:text-[30px] font-bold leading-[28px] sm:leading-[33px] tracking-[-0.84px] text-ziqx-dark">
             Inbox
           </h1>
-          <p className="mt-[7px] text-[14.5px] leading-[19px] text-ziqx-muted">
+          <p className="mt-[7px] text-[13px] sm:text-[14.5px] leading-[19px] text-ziqx-muted">
             WhatsApp conversations with your contacts.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <Input
             type="text"
             placeholder="Search contacts"
@@ -134,7 +194,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
             bgColor={ziqxUi.surface}
             fgColor={ziqxUi.dark}
             className="!border-transparent !shadow-none hover:!border-transparent focus:!border-transparent"
-            containerClassName="w-[220px]"
+            containerClassName="w-full sm:w-[220px] flex-1 sm:flex-none min-w-0"
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
@@ -156,6 +216,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                 {['all', 'New', 'Qualified', 'Contacted', 'Converted', 'Lost'].map((st) => (
                   <button
                     key={st}
+                    type="button"
                     onClick={() => {
                       setStatusFilter(st);
                       setFilterOpen(false);
@@ -180,14 +241,29 @@ export const InboxPage: React.FC<InboxPageProps> = ({
             fgColor={ziqxUi.greenFg}
             prefix={MessageSquarePlus}
             onClick={() => setIsNewChatModalOpen(true)}
+            aria-label="New message"
+            className="sm:hidden"
+            size="icon"
+          />
+          <Button
+            type="button"
+            bgColor={ziqxUi.green}
+            fgColor={ziqxUi.greenFg}
+            prefix={MessageSquarePlus}
+            onClick={() => setIsNewChatModalOpen(true)}
+            className="hidden sm:inline-flex"
           >
             New message
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-3 min-h-0">
-        <div className="flex h-full w-[331px] shrink-0 flex-col overflow-hidden rounded-[20px] bg-ziqx-card">
+      <div className="flex-1 flex gap-3 min-h-0 min-w-0">
+        <div
+          className={`${
+            showList ? 'flex' : 'hidden'
+          } lg:flex h-full w-full lg:w-[300px] xl:w-[331px] lg:shrink-0 flex-col overflow-hidden rounded-[20px] bg-ziqx-card min-w-0`}
+        >
           <div className="curve-scroll flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
             {filteredConversations.length === 0 ? (
               <div className="p-6 text-center text-[13px] text-ziqx-muted">
@@ -195,14 +271,11 @@ export const InboxPage: React.FC<InboxPageProps> = ({
               </div>
             ) : (
               filteredConversations.map((conv) => {
-                const isActive = activeConv?.id === conv.id;
+                const isActive = selectedId === conv.id;
                 return (
                   <div
                     key={conv.id}
-                    onClick={() => {
-                      setSelectedId(conv.id);
-                      if (onSelectConversation) onSelectConversation(conv.id);
-                    }}
+                    onClick={() => selectConversation(conv.id)}
                     className={`flex h-16 w-full cursor-pointer items-center rounded-[14px] pl-[10px] pr-[10px] transition-colors ${
                       isActive ? 'bg-ziqx-border' : 'hover:bg-ziqx-bg'
                     }`}
@@ -250,20 +323,39 @@ export const InboxPage: React.FC<InboxPageProps> = ({
         </div>
 
         {activeConv ? (
-          <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-ziqx-card">
-            <div className="flex h-[67px] shrink-0 items-center justify-between bg-ziqx-card px-[18px]">
+          <div
+            className={`${
+              showThread ? 'flex' : 'hidden'
+            } lg:flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-ziqx-card`}
+          >
+            <div className="flex h-[67px] shrink-0 items-center justify-between bg-ziqx-card px-3 sm:px-[18px] gap-2">
               <div className="flex items-center min-w-0">
-                <div
-                  className="size-[42px] rounded-full flex items-center justify-center text-[14px] font-bold leading-[19px] shrink-0"
+                <button
+                  type="button"
+                  onClick={() => setMobilePane('list')}
+                  className="lg:hidden mr-1.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-ziqx-bg text-ziqx-dark transition-colors hover:bg-ziqx-border"
+                  aria-label="Back to conversations"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={openContactDetails}
+                  className="size-[42px] rounded-full flex items-center justify-center text-[14px] font-bold leading-[19px] shrink-0 transition-opacity hover:opacity-90"
                   style={{
                     backgroundColor: activeConv.avatarBg,
                     color: activeConv.avatarColor,
                   }}
+                  aria-label={`View ${activeConv.name} details`}
                 >
                   {activeConv.initials}
-                </div>
-                <div className="ml-3 min-w-0">
-                  <h3 className="truncate text-[15.5px] font-bold leading-[20.9px] tracking-[-0.16px] text-ziqx-dark">
+                </button>
+                <button
+                  type="button"
+                  onClick={openContactDetails}
+                  className="ml-3 min-w-0 text-left"
+                >
+                  <h3 className="truncate text-[15.5px] font-bold leading-[20.9px] tracking-[-0.16px] text-ziqx-dark hover:text-ziqx-green transition-colors">
                     {activeConv.name}
                   </h3>
                   <p className="flex items-center gap-1.5 text-[12.5px] leading-[16.9px] text-ziqx-muted">
@@ -275,33 +367,32 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                       </>
                     )}
                   </p>
-                </div>
+                </button>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 <button
-                  onClick={openContact}
+                  type="button"
+                  onClick={openContactDetails}
                   className="flex size-9 items-center justify-center rounded-[10px] bg-ziqx-bg text-ziqx-dark transition-colors hover:bg-ziqx-border"
                   title="Contact details"
+                  aria-label="Contact details"
                 >
                   <UserRound className="w-4 h-4" />
                 </button>
                 <button
-                  className="flex size-9 items-center justify-center rounded-[10px] bg-ziqx-bg text-ziqx-dark transition-colors hover:bg-ziqx-border"
-                  title="Sidebar info"
-                >
-                  <PanelRight className="w-4 h-4" />
-                </button>
-                <button
+                  type="button"
+                  onClick={closeConversation}
                   className="flex size-9 items-center justify-center rounded-[10px] bg-ziqx-bg text-ziqx-dark transition-colors hover:bg-ziqx-border"
                   title="Close conversation"
+                  aria-label="Close conversation"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="curve-scroll flex-1 overflow-y-auto bg-ziqx-thread px-6 pb-4 pt-7">
+            <div className="curve-scroll flex-1 overflow-y-auto bg-ziqx-thread px-3 sm:px-6 pb-4 pt-7">
               {activeConv.messages.map((msg, index) => {
                 const isFirstOfGroup =
                   index === 0 ||
@@ -320,7 +411,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
 
                     <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'} mb-1.5`}>
                       <div
-                        className={`max-w-[min(480px,78%)] px-3 pb-1.5 pt-2 text-ziqx-dark ${
+                        className={`max-w-[min(480px,85%)] sm:max-w-[min(480px,78%)] px-3 pb-1.5 pt-2 text-ziqx-dark ${
                           isAgent
                             ? 'rounded-bl-[14px] rounded-br-[4px] rounded-tl-[14px] rounded-tr-[14px] bg-ziqx-green-light'
                             : 'rounded-bl-[4px] rounded-br-[14px] rounded-tl-[14px] rounded-tr-[14px] bg-ziqx-card'
@@ -329,10 +420,10 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                         {isAgent && msg.isTemplate && (
                           <div className="mb-0.5 flex items-center gap-[5px] text-[11px] font-bold leading-[15px] text-ziqx-green">
                             <FileText className="size-3 shrink-0" />
-                            <span>Template · {msg.templateName || 'welcome_new_lead'}</span>
+                            <span className="truncate">Template · {msg.templateName || 'welcome_new_lead'}</span>
                           </div>
                         )}
-                        <p className="text-[14px] leading-[20.3px] whitespace-pre-wrap">{msg.text}</p>
+                        <p className="text-[14px] leading-[20.3px] whitespace-pre-wrap break-words">{msg.text}</p>
                         <div className="mt-0.5 flex items-center justify-end gap-1 text-[11px] leading-[15px] text-ziqx-muted">
                           <span>{msg.timestamp}</span>
                           {isAgent &&
@@ -356,14 +447,15 @@ export const InboxPage: React.FC<InboxPageProps> = ({
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="relative shrink-0 bg-ziqx-card px-4 py-[11px]">
+            <div className="relative shrink-0 bg-ziqx-card px-2 sm:px-4 py-[11px]">
               {isTemplateDropdownOpen && (
-                <div className="curve-scroll absolute bottom-full left-4 z-30 mb-2 max-h-72 w-80 overflow-y-auto rounded-2xl bg-ziqx-card p-3 shadow-modal">
+                <div className="curve-scroll absolute bottom-full left-2 sm:left-4 z-30 mb-2 max-h-72 w-[min(20rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-ziqx-card p-3 shadow-modal">
                   <div className="mb-2 flex items-center justify-between pb-2">
                     <span className="text-xs font-bold text-ziqx-dark">
                       Choose a Message Template
                     </span>
                     <button
+                      type="button"
                       onClick={() => setIsTemplateDropdownOpen(false)}
                       className="text-ziqx-muted hover:text-ziqx-dark"
                     >
@@ -374,14 +466,15 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                     {templates.map((tpl) => (
                       <button
                         key={tpl.id}
+                        type="button"
                         onClick={() => handleSelectTemplate(tpl)}
                         className="w-full rounded-xl p-2 text-left transition-colors hover:bg-ziqx-bg"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-ziqx-green">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold text-ziqx-green truncate">
                             {tpl.name}
                           </span>
-                          <span className="rounded-full bg-ziqx-bg px-1.5 py-0.5 text-[10px] text-ziqx-secondary">
+                          <span className="rounded-full bg-ziqx-bg px-1.5 py-0.5 text-[10px] text-ziqx-secondary shrink-0">
                             {tpl.category}
                           </span>
                         </div>
@@ -394,7 +487,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                 </div>
               )}
 
-              <form onSubmit={handleSend} className="flex items-center gap-2">
+              <form onSubmit={handleSend} className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <Button
                   type="button"
                   size="icon"
@@ -404,8 +497,21 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                   prefix={Paperclip}
                   aria-label="Attach file"
                   title="Attach file"
+                  className="shrink-0"
                 />
 
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  bgColor={ziqxUi.canvas}
+                  fgColor={ziqxUi.dark}
+                  prefix={FileText}
+                  onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                  aria-label="Template"
+                  title="Template"
+                  className="sm:hidden shrink-0"
+                />
                 <Button
                   type="button"
                   variant="ghost"
@@ -413,6 +519,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                   fgColor={ziqxUi.dark}
                   prefix={FileText}
                   onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                  className="hidden sm:inline-flex shrink-0"
                 >
                   Template
                 </Button>
@@ -436,12 +543,17 @@ export const InboxPage: React.FC<InboxPageProps> = ({
                   fgColor={ziqxUi.greenFg}
                   prefix={SendHorizontal}
                   aria-label="Send message"
+                  className="shrink-0"
                 />
               </form>
             </div>
           </div>
         ) : (
-          <div className="flex flex-1 items-center justify-center rounded-[20px] bg-ziqx-card text-[13px] text-ziqx-muted">
+          <div
+            className={`${
+              showThread ? 'flex' : 'hidden'
+            } lg:flex flex-1 items-center justify-center rounded-[20px] bg-ziqx-card text-[13px] text-ziqx-muted px-4 text-center`}
+          >
             Select a conversation to start chatting.
           </div>
         )}
@@ -458,8 +570,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
             (c) => c.phone.replace(/\D/g, '').slice(-10) === clean
           );
           if (existing) {
-            setSelectedId(existing.id);
-            if (onSelectConversation) onSelectConversation(existing.id);
+            selectConversation(existing.id);
           } else if (onStartNewChat) {
             onStartNewChat(phone, name || phone);
           }
@@ -472,8 +583,7 @@ export const InboxPage: React.FC<InboxPageProps> = ({
               (c) => c.phone === contact.phone || c.contactId === contact.id
             );
             if (existing) {
-              setSelectedId(existing.id);
-              if (onSelectConversation) onSelectConversation(existing.id);
+              selectConversation(existing.id);
             }
           }
         }}
@@ -481,6 +591,21 @@ export const InboxPage: React.FC<InboxPageProps> = ({
           if (onStartBroadcast) {
             onStartBroadcast(name, categories, labels, count);
           }
+        }}
+      />
+
+      <ContactDrawer
+        contact={detailsContact}
+        onClose={() => setDetailsContact(null)}
+        onOpenWhatsApp={(contact) => {
+          setDetailsContact(null);
+          if (onOpenWhatsApp) {
+            onOpenWhatsApp(contact);
+          }
+        }}
+        onUpdateContact={(updated) => {
+          setDetailsContact(updated);
+          if (onUpdateContact) onUpdateContact(updated);
         }}
       />
     </div>

@@ -201,9 +201,15 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-2xs animate-in fade-in duration-150">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-2xs animate-in fade-in duration-150"
+      onClick={handleClose}
+    >
       <div
-        className="bg-white rounded-[22px] shadow-modal w-full max-w-[480px] p-6 border border-[#efede8] relative animate-in zoom-in-95 duration-150"
+        role="dialog"
+        aria-modal="true"
+        aria-label="New message"
+        className="bg-white rounded-[22px] shadow-modal w-full max-w-[480px] max-h-[90dvh] overflow-y-auto p-4 sm:p-6 border border-[#efede8] relative animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -230,7 +236,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
           <button
             type="button"
             onClick={() => setMode('number')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 text-[11px] sm:text-xs font-semibold rounded-lg text-center transition-all px-1 ${
               mode === 'number'
                 ? 'bg-white text-[#1a1a18] shadow-xs'
                 : 'text-[#5b5b5a] hover:text-[#1a1a18]'
@@ -246,7 +252,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                 setSelectedContactId(defaultSelectedContact.id);
               }
             }}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 text-[11px] sm:text-xs font-semibold rounded-lg text-center transition-all px-1 ${
               mode === 'contacts'
                 ? 'bg-white text-[#1a1a18] shadow-xs'
                 : 'text-[#5b5b5a] hover:text-[#1a1a18]'
@@ -257,7 +263,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
           <button
             type="button"
             onClick={() => setMode('broadcast')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg text-center transition-all ${
+            className={`flex-1 py-1.5 text-[11px] sm:text-xs font-semibold rounded-lg text-center transition-all px-1 ${
               mode === 'broadcast'
                 ? 'bg-white text-[#1a1a18] shadow-xs'
                 : 'text-[#5b5b5a] hover:text-[#1a1a18]'
@@ -317,7 +323,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 mt-6 pt-2">
+            <div className="flex items-center justify-end gap-2.5 flex-wrap mt-6 pt-2">
               <Button
                 type="button"
                 size="compact"
@@ -416,7 +422,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 mt-6 pt-2">
+            <div className="flex items-center justify-end gap-2.5 flex-wrap mt-6 pt-2">
               <Button
                 type="button"
                 size="compact"
@@ -526,7 +532,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 mt-6 pt-2">
+            <div className="flex items-center justify-end gap-2.5 flex-wrap mt-6 pt-2">
               <Button
                 type="button"
                 size="compact"

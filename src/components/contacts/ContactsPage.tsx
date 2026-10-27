@@ -12,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
-  Filter,
 } from 'lucide-react';
 import { ziqxUi } from '@/lib/ui';
 import { Contact } from '@/types';
@@ -115,8 +114,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     }
   };
 
-  const handleToggleSelect = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleSelect = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const updated = new Set(selectedIds);
     if (updated.has(id)) {
       updated.delete(id);
@@ -128,6 +127,8 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
 
   // Export CSV
   const handleExportCSV = () => {
+    const escapeCsv = (value: string) =>
+      `"${String(value ?? '').replace(/"/g, '""')}"`;
     const headers = ['Contact Name', 'Phone Number', 'Category', 'Label', 'Saved On', 'Email', 'Lead Source'];
     const rows = filteredContacts.map((c) => [
       c.name,
@@ -140,7 +141,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
     ]);
     const csvContent =
       'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      [
+        headers.map(escapeCsv).join(','),
+        ...rows.map((row) => row.map(escapeCsv).join(',')),
+      ].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -164,7 +168,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <Input
             type="text"
             placeholder="Search contacts"
@@ -172,7 +176,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
             prefix={Search}
             bgColor={ziqxUi.surface}
             fgColor={ziqxUi.dark}
-            containerClassName="w-44 sm:w-52"
+            containerClassName="w-full sm:w-52 flex-1 sm:flex-none min-w-0"
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
@@ -222,7 +226,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                     label="Category"
                     compact
                     value={selectedCategory}
-                    onValueChange={setSelectedCategory}
+                    onValueChange={(value) => {
+                      setSelectedCategory(value);
+                      setCurrentPage(1);
+                    }}
                     options={[
                       { value: 'all', label: 'All Categories' },
                       { value: 'SEO & Ads', label: 'SEO & Ads' },
@@ -238,7 +245,10 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                     label="Label"
                     compact
                     value={selectedLabel}
-                    onValueChange={setSelectedLabel}
+                    onValueChange={(value) => {
+                      setSelectedLabel(value);
+                      setCurrentPage(1);
+                    }}
                     options={[
                       { value: 'all', label: 'All Labels' },
                       { value: 'Hot', label: 'Hot' },
@@ -291,10 +301,99 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
       </div>
 
       {/* Main Table Card */}
-      <div className="flex-1 bg-white rounded-3xl border border-[#efede8] shadow-sm flex flex-col justify-between overflow-hidden">
-        {/* Table scroll container */}
-        <div className="curve-scroll flex-1 overflow-x-auto overflow-y-auto">
-          <table className="w-full text-left text-xs border-collapse">
+      <div className="flex-1 bg-white rounded-3xl border border-[#efede8] shadow-sm flex flex-col justify-between overflow-hidden min-h-0">
+        {/* Mobile card list */}
+        <div className="curve-scroll md:hidden flex-1 overflow-y-auto p-2 space-y-1.5">
+          {currentContacts.length === 0 ? (
+            <div className="py-12 text-center text-xs text-[#8f8f8e]">
+              No contacts match your search or filters.
+            </div>
+          ) : (
+            currentContacts.map((contact) => {
+              const labels =
+                contact.labels && contact.labels.length > 0
+                  ? contact.labels
+                  : contact.label
+                    ? [contact.label]
+                    : [];
+              const isSelected = selectedIds.has(contact.id);
+              const isRowActive = activeContact?.id === contact.id;
+
+              return (
+                <div
+                  key={contact.id}
+                  onClick={() => setActiveContact(contact)}
+                  className={`flex items-start gap-3 rounded-2xl p-3 cursor-pointer transition-colors ${
+                    isRowActive
+                      ? 'bg-[#f4f3ef]'
+                      : isSelected
+                        ? 'bg-[#ddf3e5]/30'
+                        : 'hover:bg-[#faf9f7]'
+                  }`}
+                >
+                  <div
+                    className="pt-1"
+                    onClick={(e) => handleToggleSelect(contact.id, e)}
+                  >
+                    <Checkbox
+                      size={16}
+                      bgColor={ziqxUi.green}
+                      fgColor={ziqxUi.greenFg}
+                      checked={isSelected}
+                      onChange={() => handleToggleSelect(contact.id)}
+                      aria-label={`Select ${contact.name}`}
+                    />
+                  </div>
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                    style={{
+                      backgroundColor: contact.avatarBg,
+                      color: contact.avatarColor,
+                    }}
+                  >
+                    {contact.initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#1a1a18] truncate">
+                      {contact.name}
+                    </p>
+                    <p className="text-xs text-[#5b5b5a] mt-0.5 truncate">
+                      {contact.phone}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-medium text-[#5b5b5a] bg-[#f0eeea] px-2 py-0.5 rounded-md">
+                        {contact.category}
+                      </span>
+                      {labels.map((lbl) => (
+                        <span
+                          key={lbl}
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#f0eeea] text-[#5b5b5a]"
+                        >
+                          {lbl}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveContact(contact);
+                    }}
+                    className="w-8 h-8 rounded-lg text-[#8f8f8e] hover:text-[#1a1a18] hover:bg-[#efede8] inline-flex items-center justify-center transition-colors shrink-0"
+                    title="Edit contact"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="curve-scroll hidden md:block flex-1 overflow-x-auto overflow-y-auto min-w-0">
+          <table className="w-full text-left text-xs border-collapse min-w-[640px]">
             <thead className="sticky top-0 bg-white border-b border-[#f0eeea] z-10">
               <tr className="text-[#8f8f8e] text-[11px] font-medium">
                 <th className="py-3 px-4 w-10">
@@ -347,7 +446,6 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                           : 'hover:bg-[#faf9f7]'
                       }`}
                     >
-                      {/* Checkbox */}
                       <td
                         className="py-2.5 px-4"
                         onClick={(e) => handleToggleSelect(contact.id, e)}
@@ -357,12 +455,11 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                           bgColor={ziqxUi.green}
                           fgColor={ziqxUi.greenFg}
                           checked={isSelected}
-                          onChange={() => {}}
+                          onChange={() => handleToggleSelect(contact.id)}
                           aria-label={`Select ${contact.name}`}
                         />
                       </td>
 
-                      {/* Contact Name & Initials */}
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-2.5">
                           <div
@@ -380,17 +477,14 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         </div>
                       </td>
 
-                      {/* Phone Number */}
                       <td className="py-2.5 px-3 text-[#5b5b5a] font-normal">
                         {contact.phone}
                       </td>
 
-                      {/* Category */}
                       <td className="py-2.5 px-3 text-[#5b5b5a]">
                         {contact.category}
                       </td>
 
-                      {/* Label Pill */}
                       <td className="py-2.5 px-3">
                         {(() => {
                           const labels =
@@ -417,14 +511,13 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
                         })()}
                       </td>
 
-                      {/* Saved On */}
                       <td className="py-2.5 px-3 text-[#5b5b5a]">
                         {contact.savedOn}
                       </td>
 
-                      {/* Actions */}
                       <td className="py-2.5 px-3 text-right pr-5">
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveContact(contact);
@@ -444,13 +537,14 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-3.5 px-5 border-t border-[#f0eeea] flex items-center justify-between bg-white text-xs text-[#8f8f8e]">
-          <div>
+        <div className="p-3 sm:p-3.5 sm:px-5 border-t border-[#f0eeea] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white text-xs text-[#8f8f8e]">
+          <div className="text-center sm:text-left">
             Showing {filteredContacts.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–{Math.min(currentPage * pageSize, filteredContacts.length)} of {filteredContacts.length}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-1 flex-wrap">
             <button
+              type="button"
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
               className="w-7 h-7 rounded-lg border border-[#e5e5e0] flex items-center justify-center text-[#5b5b5a] disabled:opacity-30 hover:bg-[#f4f3ef] transition-colors"
@@ -460,6 +554,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
 
             {visiblePages.map((page) => (
               <button
+                type="button"
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-7 h-7 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors ${
@@ -473,6 +568,7 @@ export const ContactsPage: React.FC<ContactsPageProps> = ({
             ))}
 
             <button
+              type="button"
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
               className="w-7 h-7 rounded-lg border border-[#e5e5e0] flex items-center justify-center text-[#5b5b5a] disabled:opacity-30 hover:bg-[#f4f3ef] transition-colors"

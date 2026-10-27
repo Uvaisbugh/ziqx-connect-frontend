@@ -18,7 +18,7 @@ import {
   ExternalLink,
   Info,
   Check,
-  Users,
+  ChevronLeft,
 } from 'lucide-react';
 import { ziqxUi } from '@/lib/ui';
 import { MessageTemplate, Contact } from '@/types';
@@ -54,10 +54,18 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
   });
   const [copied, setCopied] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
-  const [selectedContactForSend, setSelectedContactForSend] = useState<Contact>(contacts[0]);
+  const [selectedContactForSend, setSelectedContactForSend] = useState<Contact | null>(
+    contacts[0] ?? null
+  );
+  const [mobilePane, setMobilePane] = useState<'list' | 'preview'>('list');
 
   const activeTemplate =
     templates.find((t) => t.id === selectedTemplateId) || templates[0];
+
+  const selectTemplate = (id: string) => {
+    setSelectedTemplateId(id);
+    setMobilePane('preview');
+  };
 
   const filteredTemplates = templates.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -96,6 +104,11 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
             <span>Paused</span>
           </span>
         );
+      default: {
+        const _exhaustive: never = status;
+        void _exhaustive;
+        return null;
+      }
     }
   };
 
@@ -170,7 +183,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <Input
             type="text"
             placeholder="Search templates"
@@ -178,7 +191,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
             prefix={Search}
             bgColor={ziqxUi.surface}
             fgColor={ziqxUi.dark}
-            containerClassName="w-48 sm:w-56"
+            containerClassName="w-full sm:w-56 flex-1 sm:flex-none min-w-0"
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
@@ -222,7 +235,8 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
             onClick={() =>
               window.open(
                 'https://business.facebook.com/wa/manage/message-templates/',
-                '_blank'
+                '_blank',
+                'noopener,noreferrer'
               )
             }
           >
@@ -232,16 +246,20 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
       </div>
 
       {/* Main Container: 2 Columns */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden min-h-0 min-w-0">
         {/* Left Column: Templates Table Card */}
-        <div className="flex-1 bg-white rounded-3xl border border-[#efede8] shadow-sm flex flex-col justify-between overflow-hidden">
-          <div className="curve-scroll flex-1 overflow-y-auto">
-            <table className="w-full text-left text-xs border-collapse">
+        <div
+          className={`${
+            mobilePane === 'list' ? 'flex' : 'hidden'
+          } lg:flex flex-1 min-w-0 bg-white rounded-3xl border border-[#efede8] shadow-sm flex-col justify-between overflow-hidden`}
+        >
+          <div className="curve-scroll flex-1 overflow-y-auto min-w-0">
+            <table className="w-full text-left text-xs border-collapse min-w-0">
               <thead className="sticky top-0 bg-white border-b border-[#f0eeea] z-10">
                 <tr className="text-[#8f8f8e] text-[11px] font-medium">
-                  <th className="py-3 px-5 font-medium">Template</th>
-                  <th className="py-3 px-4 font-medium">Category</th>
-                  <th className="py-3 px-4 font-medium">Status</th>
+                  <th className="py-3 px-3 sm:px-5 font-medium">Template</th>
+                  <th className="py-3 px-2 sm:px-4 font-medium">Category</th>
+                  <th className="py-3 px-2 sm:px-4 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f0eeea]">
@@ -250,17 +268,17 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
                   return (
                     <tr
                       key={tpl.id}
-                      onClick={() => setSelectedTemplateId(tpl.id)}
+                      onClick={() => selectTemplate(tpl.id)}
                       className={`cursor-pointer transition-colors ${
                         isSelected
                           ? 'bg-[#f4f3ef]/80'
                           : 'hover:bg-[#faf9f7]'
                       }`}
                     >
-                      <td className="py-3 px-5 font-bold text-[#1a1a18]">
+                      <td className="py-3 px-3 sm:px-5 font-bold text-[#1a1a18] break-words max-w-[10rem] sm:max-w-none">
                         {tpl.name}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-2 sm:px-4">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-medium ${
                             tpl.category === 'Marketing'
@@ -271,7 +289,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
                           {tpl.category}
                         </span>
                       </td>
-                      <td className="py-3 px-4">{getStatusBadge(tpl.status)}</td>
+                      <td className="py-3 px-2 sm:px-4">{getStatusBadge(tpl.status)}</td>
                     </tr>
                   );
                 })}
@@ -280,7 +298,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
           </div>
 
           {/* Sync Notice Footer */}
-          <div className="p-3.5 px-5 border-t border-[#f0eeea] flex items-center gap-2 text-xs text-[#8f8f8e] bg-white">
+          <div className="p-3 sm:p-3.5 sm:px-5 border-t border-[#f0eeea] flex items-center gap-2 text-xs text-[#8f8f8e] bg-white">
             <Info className="w-3.5 h-3.5 text-[#8f8f8e] shrink-0" />
             <span>
               Templates are created and approved in WhatsApp Manager. Changes there sync here automatically.
@@ -290,14 +308,28 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
 
         {/* Right Column: Template Preview Card */}
         {activeTemplate && (
-          <div className="curve-scroll w-full lg:w-[420px] bg-white rounded-3xl border border-[#efede8] p-5 shadow-sm flex flex-col justify-between overflow-y-auto shrink-0">
+          <div
+            className={`${
+              mobilePane === 'preview' ? 'flex' : 'hidden'
+            } lg:flex curve-scroll w-full lg:w-[420px] bg-white rounded-3xl border border-[#efede8] p-4 sm:p-5 shadow-sm flex-col justify-between overflow-y-auto shrink-0 min-h-0 min-w-0`}
+          >
             <div>
               {/* Header */}
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-bold text-[#1a1a18]">
-                  {activeTemplate.name}
-                </h3>
-                {getStatusBadge(activeTemplate.status)}
+              <div className="flex items-start gap-2 mb-1">
+                <button
+                  type="button"
+                  onClick={() => setMobilePane('list')}
+                  className="lg:hidden flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#e5e5e0] text-[#5b5b5a] hover:bg-[#f4f3ef] transition-colors"
+                  aria-label="Back to templates"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <div className="flex items-center justify-between gap-2 flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-[#1a1a18] break-words">
+                    {activeTemplate.name}
+                  </h3>
+                  {getStatusBadge(activeTemplate.status)}
+                </div>
               </div>
               <p className="text-[11px] text-[#8f8f8e] mb-4">
                 {activeTemplate.category} · {activeTemplate.language} · Updated {activeTemplate.updatedAt}
@@ -307,10 +339,10 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
               <div className="bg-[#faf9f7] border border-[#efede8] rounded-2xl p-4 mb-5">
                 <div className="bg-[#ddf3e5] rounded-2xl p-3.5 shadow-xs text-xs space-y-1.5 text-[#1a1a18]">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#0b5c46]">
-                    <FileText className="w-3 h-3" />
-                    <span>Template · {activeTemplate.name}</span>
+                    <FileText className="w-3 h-3 shrink-0" />
+                    <span className="truncate">Template · {activeTemplate.name}</span>
                   </div>
-                  <p className="leading-relaxed text-xs">
+                  <p className="leading-relaxed text-xs break-words">
                     {renderPreviewContent()}
                   </p>
                   <div className="flex items-center justify-end gap-1 text-[10px] text-[#5b5b5a] pt-1">
@@ -329,8 +361,8 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
 
                   <div className="space-y-2">
                     {activeTemplate.variables.map((v) => (
-                      <div key={v.key} className="flex items-center gap-3">
-                        <label className="text-xs font-mono text-[#6b38c2] bg-[#efeafb] px-2 py-1 rounded-md shrink-0 w-24 truncate text-center">
+                      <div key={v.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <label className="text-xs font-mono text-[#6b38c2] bg-[#efeafb] px-2 py-1 rounded-md shrink-0 sm:w-24 truncate text-center self-start">
                           {`{{${v.key}}}`}
                         </label>
                         <input
@@ -342,7 +374,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
                               [v.key]: e.target.value,
                             })
                           }
-                          className="flex-1 text-xs px-3 py-1.5 rounded-xl border border-[#e5e5e0] focus:border-[#0b5c46] outline-none text-[#1a1a18] bg-white transition-colors"
+                          className="flex-1 min-w-0 text-xs px-3 py-1.5 rounded-xl border border-[#e5e5e0] focus:border-[#0b5c46] outline-none text-[#1a1a18] bg-white transition-colors"
                         />
                       </div>
                     ))}
@@ -364,7 +396,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
                 Send to a contact
               </Button>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   type="button"
                   size="compact"
@@ -387,7 +419,8 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
                   onClick={() =>
                     window.open(
                       'https://business.facebook.com/wa/manage/message-templates/',
-                      '_blank'
+                      '_blank',
+                      'noopener,noreferrer'
                     )
                   }
                 >
@@ -402,12 +435,17 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
       {/* Send Template to Contact Modal */}
       {isSendModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl shadow-modal w-full max-w-md p-6 border border-[#efede8]">
-            <h3 className="text-base font-bold text-[#1a1a18] mb-1">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="send-template-title"
+            className="bg-white rounded-3xl shadow-modal w-full max-w-md max-h-[min(90dvh,640px)] overflow-y-auto p-4 sm:p-6 border border-[#efede8]"
+          >
+            <h3 id="send-template-title" className="text-base font-bold text-[#1a1a18] mb-1">
               Send Template to Contact
             </h3>
             <p className="text-xs text-[#8f8f8e] mb-4">
-              Select which contact receives this {activeTemplate.name} WhatsApp template.
+              Select which contact receives this {activeTemplate?.name} WhatsApp template.
             </p>
 
             <div className="space-y-3 mb-5">
@@ -444,7 +482,7 @@ export const TemplatesPage: React.FC<TemplatesPageProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-2 flex-wrap">
               <Button
                 type="button"
                 size="compact"

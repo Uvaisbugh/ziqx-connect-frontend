@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import '@ziqx/react-comps/styles.css';
 import { ScrollChrome } from '@/components/shell/ScrollChrome';
@@ -14,6 +14,12 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'Ziqx Connect - WhatsApp CRM & Conversations',
   description: 'WhatsApp CRM and conversations for Ziqx',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

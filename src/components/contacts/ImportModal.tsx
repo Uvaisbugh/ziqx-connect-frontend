@@ -105,11 +105,16 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl shadow-modal w-full max-w-lg p-6 border border-[#efede8] relative animate-in zoom-in-95 duration-200">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="import-contacts-title"
+        className="bg-white rounded-3xl shadow-modal w-full max-w-lg max-h-[90dvh] overflow-y-auto p-4 sm:p-6 border border-[#efede8] relative animate-in zoom-in-95 duration-200"
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h3 className="text-lg font-bold text-[#1a1a18]">
+            <h3 id="import-contacts-title" className="text-lg font-bold text-[#1a1a18]">
               Import contacts from CSV
             </h3>
             <p className="text-xs text-[#8f8f8e] mt-0.5">
@@ -199,8 +204,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 </span>
               </div>
 
-              <div className="curve-scroll border border-[#e5e5e0] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                <table className="w-full text-left text-xs">
+              <div className="curve-scroll border border-[#e5e5e0] rounded-xl overflow-x-auto overflow-y-auto max-h-48">
+                <table className="w-full text-left text-xs min-w-[20rem]">
                   <thead className="bg-[#faf9f7] text-[#8f8f8e] border-b border-[#efede8]">
                     <tr>
                       <th className="py-2 px-3 font-medium">Name</th>
@@ -223,16 +228,16 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-6 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6 pt-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-xs text-[#5b5b5a] hover:underline"
+                className="text-xs text-[#5b5b5a] hover:underline self-start"
               >
                 Back to file select
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   type="button"
                   size="compact"

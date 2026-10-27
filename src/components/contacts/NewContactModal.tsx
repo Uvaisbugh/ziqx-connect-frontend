@@ -184,11 +184,16 @@ export const NewContactModal: React.FC<NewContactModalProps> = ({
       />
 
       {/* Right-side drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] md:w-[720px] max-w-[720px] bg-white rounded-l-[24px] shadow-2xl border-l border-[#efede8] flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-250">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-contact-title"
+        className="fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] md:w-[720px] max-w-[720px] max-h-dvh bg-white rounded-l-[24px] shadow-2xl border-l border-[#efede8] flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-250 pb-[env(safe-area-inset-bottom)]"
+      >
         {/* Header */}
-        <div className="px-8 py-5 border-b border-[#f0eeea] flex items-start justify-between bg-white shrink-0">
-          <div>
-            <h2 className="text-xl font-bold text-[#1a1a18] tracking-tight">
+        <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-[#f0eeea] flex items-start justify-between gap-3 bg-white shrink-0">
+          <div className="min-w-0">
+            <h2 id="new-contact-title" className="text-xl font-bold text-[#1a1a18] tracking-tight">
               Add contact
             </h2>
             <p className="text-xs text-[#8f8f8e] mt-1">
@@ -198,7 +203,7 @@ export const NewContactModal: React.FC<NewContactModalProps> = ({
           <button
             type="button"
             onClick={handleClose}
-            className="w-8 h-8 rounded-xl bg-[#f4f3ef] border border-[#e5e5e0] flex items-center justify-center text-[#5b5b5a] hover:bg-[#eae8e3] transition-colors"
+            className="w-8 h-8 rounded-xl bg-[#f4f3ef] border border-[#e5e5e0] flex items-center justify-center text-[#5b5b5a] hover:bg-[#eae8e3] transition-colors shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -208,7 +213,7 @@ export const NewContactModal: React.FC<NewContactModalProps> = ({
         <form
           id="new-contact-drawer-form"
           onSubmit={handleSubmit}
-          className="curve-scroll flex-1 overflow-y-auto px-8 py-6 space-y-5"
+          className="curve-scroll flex-1 overflow-y-auto px-4 sm:px-8 py-5 sm:py-6 space-y-5 min-h-0"
         >
           <Input
             label="Full name *"
@@ -464,7 +469,7 @@ export const NewContactModal: React.FC<NewContactModalProps> = ({
         </form>
 
         {/* Fixed Footer */}
-        <div className="px-8 py-4 border-t border-[#f0eeea] bg-white flex items-center justify-end gap-3 shrink-0">
+        <div className="px-4 sm:px-8 py-4 border-t border-[#f0eeea] bg-white flex items-center justify-end gap-3 flex-wrap shrink-0">
           <Button
             type="button"
             variant="outline"

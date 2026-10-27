@@ -22,7 +22,7 @@ export function InboxScreen({
   activeConversationId?: string;
 }) {
   const router = useRouter();
-  const { contacts } = useContacts();
+  const { contacts, updateContact } = useContacts();
   const [sendError, setSendError] = useState<string | null>(null);
 
   return (
@@ -40,11 +40,10 @@ export function InboxScreen({
         onSelectConversation={(id) => {
           router.push(`/inbox?thread=${encodeURIComponent(id)}`);
         }}
-        onOpenContactDetails={(contact) => {
-          router.push('/contacts');
-          // Contact selection stays in contacts client state via drawer open on next visit if needed.
-          void contact;
+        onCloseConversation={() => {
+          router.push('/inbox');
         }}
+        onUpdateContact={updateContact}
         onSendMessage={async (conversationId, text, isTemplate, templateName) => {
           setSendError(null);
           if (isTemplate && templateName) {

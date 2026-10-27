@@ -33,13 +33,15 @@ interface ToggleSwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  label: string;
 }
 
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, disabled }) => (
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, disabled, label }) => (
   <button
     type="button"
     role="switch"
     aria-checked={checked}
+    aria-label={label}
     disabled={disabled}
     onClick={() => !disabled && onChange(!checked)}
     className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none ${
@@ -247,17 +249,18 @@ export const SettingsPage: React.FC<{
       )}
 
       {/* Main Two-Column Layout */}
-      <div className="curve-scroll flex-1 flex flex-col md:flex-row gap-5 items-start overflow-y-auto pr-1 pb-4">
+      <div className="curve-scroll flex-1 flex flex-col lg:flex-row gap-5 items-start overflow-y-auto pr-1 pb-4 min-h-0">
         {/* Left: Standalone Sub-Navigation Card */}
-        <div className="w-full md:w-56 shrink-0 bg-white rounded-3xl border border-[#efede8] p-2 shadow-sm flex flex-col gap-1">
+        <div className="w-full lg:w-56 shrink-0 bg-white rounded-3xl border border-[#efede8] p-2 shadow-sm flex flex-row lg:flex-col gap-1 flex-wrap lg:flex-nowrap">
           {subNavItems.map((item) => {
             const isActive = activeSubTab === item.id;
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveSubTab(item.id)}
-                className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-colors text-left ${
+                className={`flex-1 min-w-[calc(50%-0.25rem)] lg:min-w-0 lg:w-full flex items-center gap-3 p-2.5 rounded-2xl transition-colors text-left ${
                   isActive
                     ? 'bg-[#f0eeea]'
                     : 'hover:bg-[#faf9f7]'
@@ -276,7 +279,7 @@ export const SettingsPage: React.FC<{
                   <span className="font-bold text-xs text-[#1a1a18] leading-tight">
                     {item.label}
                   </span>
-                  <span className="text-[10px] text-[#8f8f8e] truncate mt-0.5">
+                  <span className="text-[10px] text-[#8f8f8e] truncate mt-0.5 hidden sm:block">
                     {item.sub}
                   </span>
                 </div>
@@ -291,7 +294,7 @@ export const SettingsPage: React.FC<{
           {/* 1. PROFILE SUBSECTION */}
           {/* ========================================================= */}
           {activeSubTab === 'profile' && (
-            <div className="bg-white rounded-3xl border border-[#efede8] p-7 shadow-sm">
+            <div className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-7 shadow-sm">
               <div>
                 <h2 className="text-base font-bold text-[#1a1a18]">Profile</h2>
                 <p className="text-xs text-[#8f8f8e] mt-0.5">
@@ -405,7 +408,7 @@ export const SettingsPage: React.FC<{
           {activeSubTab === 'contacts' && (
             <div className="flex flex-col gap-5">
               {/* Card 1: Google Contacts sync */}
-              <div className="bg-white rounded-3xl border border-[#efede8] p-7 shadow-sm">
+              <div className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-7 shadow-sm">
                 <div>
                   <h2 className="text-base font-bold text-[#1a1a18]">
                     Google Contacts sync
@@ -417,27 +420,29 @@ export const SettingsPage: React.FC<{
 
                 {/* Connection Status Banner */}
                 {isConnected ? (
-                  <div className="mt-5 p-3.5 rounded-2xl bg-[#ddf3e5]/50 border border-[#bce8cc] flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                  <div className="mt-5 p-3.5 rounded-2xl bg-[#ddf3e5]/50 border border-[#bce8cc] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <CheckCircle2 className="w-5 h-5 text-[#0b5c46] shrink-0" />
-                      <div>
+                      <div className="min-w-0">
                         <h4 className="text-xs font-bold text-[#0b5c46]">
                           Connected to Google Contacts
                         </h4>
-                        <p className="text-[11px] text-[#0b5c46]/80 mt-0.5">
+                        <p className="text-[11px] text-[#0b5c46]/80 mt-0.5 truncate">
                           jabir@ziqx.cc · Last synced {lastSyncedText}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <button
+                        type="button"
                         onClick={() => setIsConnected(false)}
                         className="text-xs font-semibold text-[#b91c1c] hover:underline cursor-pointer"
                       >
                         Disconnect
                       </button>
                       <button
+                        type="button"
                         onClick={handleSyncNow}
                         disabled={isSyncing}
                         className="border border-[#0b5c46] text-[#0b5c46] hover:bg-[#0b5c46]/10 px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
@@ -450,8 +455,8 @@ export const SettingsPage: React.FC<{
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-5 p-3.5 rounded-2xl bg-[#faf9f7] border border-[#efede8] flex items-center justify-between">
-                    <div>
+                  <div className="mt-5 p-3.5 rounded-2xl bg-[#faf9f7] border border-[#efede8] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-bold text-[#5b5b5a]">
                         Google Contacts disconnected
                       </h4>
@@ -460,8 +465,9 @@ export const SettingsPage: React.FC<{
                       </p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setIsConnected(true)}
-                      className="bg-[#0b5c46] text-white hover:bg-[#084836] px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer"
+                      className="bg-[#0b5c46] text-white hover:bg-[#084836] px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer shrink-0 self-start sm:self-auto"
                     >
                       Connect
                     </button>
@@ -469,8 +475,8 @@ export const SettingsPage: React.FC<{
                 )}
 
                 {/* Automatic sync row */}
-                <div className="mt-6 pt-5 border-t border-[#f0eeea] flex items-center justify-between">
-                  <div>
+                <div className="mt-6 pt-5 border-t border-[#f0eeea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0">
                     <h4 className="text-xs font-semibold text-[#1a1a18]">
                       Automatic sync
                     </h4>
@@ -478,12 +484,16 @@ export const SettingsPage: React.FC<{
                       Run in the background without opening this page.
                     </p>
                   </div>
-                  <ToggleSwitch checked={autoSync} onChange={setAutoSync} />
+                  <ToggleSwitch
+                    label="Automatic sync"
+                    checked={autoSync}
+                    onChange={setAutoSync}
+                  />
                 </div>
 
                 {/* Sync direction row */}
-                <div className="mt-5 pt-5 border-t border-[#f0eeea] flex items-center justify-between">
-                  <div>
+                <div className="mt-5 pt-5 border-t border-[#f0eeea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="min-w-0">
                     <h4 className="text-xs font-semibold text-[#1a1a18]">
                       Sync direction
                     </h4>
@@ -492,8 +502,9 @@ export const SettingsPage: React.FC<{
                     </p>
                   </div>
 
-                  <div className="bg-[#f0eeea] p-1 rounded-xl flex items-center text-xs">
+                  <div className="bg-[#f0eeea] p-1 rounded-xl flex items-center text-xs flex-wrap gap-0.5 shrink-0">
                     <button
+                      type="button"
                       onClick={() => setSyncDirection('google-to-crm')}
                       className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                         syncDirection === 'google-to-crm'
@@ -504,6 +515,7 @@ export const SettingsPage: React.FC<{
                       Google → CRM
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSyncDirection('two-way')}
                       className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                         syncDirection === 'two-way'
@@ -514,6 +526,7 @@ export const SettingsPage: React.FC<{
                       Two-way
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSyncDirection('crm-to-google')}
                       className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
                         syncDirection === 'crm-to-google'
@@ -528,7 +541,7 @@ export const SettingsPage: React.FC<{
               </div>
 
               {/* Card 2: Fields needed */}
-              <div className="bg-white rounded-3xl border border-[#efede8] p-7 shadow-sm">
+              <div className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-7 shadow-sm">
                 <div>
                   <h2 className="text-base font-bold text-[#1a1a18]">
                     Fields needed
@@ -540,8 +553,8 @@ export const SettingsPage: React.FC<{
 
                 <div className="divide-y divide-[#f0eeea] mt-5">
                   {/* Row 1: Name */}
-                  <div className="py-4 flex items-center justify-between first:pt-2">
-                    <div>
+                  <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 first:pt-2">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-semibold text-[#1a1a18]">
                         Name
                       </h4>
@@ -549,15 +562,15 @@ export const SettingsPage: React.FC<{
                         Shown across the inbox, templates and contact list.
                       </p>
                     </div>
-                    <span className="bg-[#f4f3ef] text-[#5b5b5a] text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 select-none">
+                    <span className="bg-[#f4f3ef] text-[#5b5b5a] text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 select-none self-start sm:self-auto shrink-0">
                       <Lock className="w-3 h-3 text-[#5b5b5a]" />
                       <span>Always required</span>
                     </span>
                   </div>
 
                   {/* Row 2: Phone number */}
-                  <div className="py-4 flex items-center justify-between">
-                    <div>
+                  <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-semibold text-[#1a1a18]">
                         Phone number
                       </h4>
@@ -565,15 +578,15 @@ export const SettingsPage: React.FC<{
                         Needed to send WhatsApp messages.
                       </p>
                     </div>
-                    <span className="bg-[#f4f3ef] text-[#5b5b5a] text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 select-none">
+                    <span className="bg-[#f4f3ef] text-[#5b5b5a] text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 select-none self-start sm:self-auto shrink-0">
                       <Lock className="w-3 h-3 text-[#5b5b5a]" />
                       <span>Always required</span>
                     </span>
                   </div>
 
                   {/* Row 3: Email */}
-                  <div className="py-4 flex items-center justify-between">
-                    <div>
+                  <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-semibold text-[#1a1a18]">
                         Email
                       </h4>
@@ -581,9 +594,10 @@ export const SettingsPage: React.FC<{
                         For proposals and Google Contacts matching.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                       <span className="text-xs text-[#8f8f8e]">Optional</span>
                       <ToggleSwitch
+                        label="Email required"
                         checked={fieldsState.email}
                         onChange={(c) =>
                           setFieldsState({ ...fieldsState, email: c })
@@ -593,8 +607,8 @@ export const SettingsPage: React.FC<{
                   </div>
 
                   {/* Row 4: Address */}
-                  <div className="py-4 flex items-center justify-between">
-                    <div>
+                  <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-semibold text-[#1a1a18]">
                         Address
                       </h4>
@@ -602,9 +616,10 @@ export const SettingsPage: React.FC<{
                         Street, city and PIN code.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                       <span className="text-xs text-[#8f8f8e]">Optional</span>
                       <ToggleSwitch
+                        label="Address required"
                         checked={fieldsState.address}
                         onChange={(c) =>
                           setFieldsState({ ...fieldsState, address: c })
@@ -614,8 +629,8 @@ export const SettingsPage: React.FC<{
                   </div>
 
                   {/* Row 5: Notes */}
-                  <div className="py-4 flex items-center justify-between last:pb-1">
-                    <div>
+                  <div className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 last:pb-1">
+                    <div className="min-w-0">
                       <h4 className="text-xs font-semibold text-[#1a1a18]">
                         Notes
                       </h4>
@@ -623,9 +638,10 @@ export const SettingsPage: React.FC<{
                         A short note about the enquiry.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                       <span className="text-xs text-[#8f8f8e]">Optional</span>
                       <ToggleSwitch
+                        label="Notes required"
                         checked={fieldsState.notes}
                         onChange={(c) =>
                           setFieldsState({ ...fieldsState, notes: c })
@@ -642,9 +658,9 @@ export const SettingsPage: React.FC<{
           {/* 3. TEAM MEMBERS SUBSECTION */}
           {/* ========================================================= */}
           {activeSubTab === 'team' && (
-            <div className="bg-white rounded-3xl border border-[#efede8] p-7 shadow-sm">
-              <div className="flex items-center justify-between mb-5">
-                <div>
+            <div className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-7 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div className="min-w-0">
                   <h2 className="text-base font-bold text-[#1a1a18]">
                     Team members
                   </h2>
@@ -654,8 +670,9 @@ export const SettingsPage: React.FC<{
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsInviteOpen(true)}
-                  className="bg-[#0b5c46] hover:bg-[#084836] text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                  className="bg-[#0b5c46] hover:bg-[#084836] text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Invite member</span>
@@ -663,8 +680,8 @@ export const SettingsPage: React.FC<{
               </div>
 
               {/* Members Table */}
-              <div className="curve-scroll overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="curve-scroll overflow-x-auto -mx-1 px-1">
+                <table className="w-full text-left text-xs border-collapse min-w-[36rem]">
                   <thead>
                     <tr className="text-[#8f8f8e] text-[11px] font-medium border-b border-[#f0eeea]">
                       <th className="pb-3 font-medium">Member</th>
@@ -748,7 +765,7 @@ export const SettingsPage: React.FC<{
           {/* 4. NOTIFICATIONS SUBSECTION */}
           {/* ========================================================= */}
           {activeSubTab === 'notifications' && (
-            <div className="bg-white rounded-3xl border border-[#efede8] p-7 shadow-sm">
+            <div className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-7 shadow-sm">
               <div className="mb-4">
                 <h2 className="text-base font-bold text-[#1a1a18]">
                   Notifications
@@ -759,8 +776,8 @@ export const SettingsPage: React.FC<{
               </div>
 
               {/* Table of Notification Settings */}
-              <div className="curve-scroll overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="curve-scroll overflow-x-auto -mx-1 px-1">
+                <table className="w-full text-left text-xs border-collapse min-w-[36rem]">
                   <thead>
                     <tr className="text-[#8f8f8e] text-[11px] font-medium border-b border-[#f0eeea]">
                       <th className="pb-3 font-medium">Event</th>
@@ -782,6 +799,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="New message from a lead in-app"
                             checked={notifications.newMessage.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -795,6 +813,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="New message from a lead email"
                             checked={notifications.newMessage.email}
                             onChange={(c) =>
                               setNotifications({
@@ -820,6 +839,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Lead assigned to me in-app"
                             checked={notifications.leadAssigned.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -833,6 +853,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Lead assigned to me email"
                             checked={notifications.leadAssigned.email}
                             onChange={(c) =>
                               setNotifications({
@@ -858,6 +879,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Follow-up due in-app"
                             checked={notifications.followUpDue.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -871,6 +893,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Follow-up due email"
                             checked={notifications.followUpDue.email}
                             onChange={(c) =>
                               setNotifications({
@@ -896,6 +919,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Template status changes in-app"
                             checked={notifications.templateStatus.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -909,6 +933,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Template status changes email"
                             checked={notifications.templateStatus.email}
                             onChange={(c) =>
                               setNotifications({
@@ -934,6 +959,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="WhatsApp connection issues in-app"
                             checked={notifications.whatsappIssues.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -947,6 +973,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="WhatsApp connection issues email"
                             checked={notifications.whatsappIssues.email}
                             onChange={(c) =>
                               setNotifications({
@@ -972,6 +999,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Daily summary in-app"
                             checked={notifications.dailySummary.inApp}
                             onChange={(c) =>
                               setNotifications({
@@ -985,6 +1013,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Daily summary email"
                             checked={notifications.dailySummary.email}
                             onChange={(c) =>
                               setNotifications({
@@ -1010,6 +1039,7 @@ export const SettingsPage: React.FC<{
                       <td className="py-3.5 text-center">
                         <div className="flex justify-center">
                           <ToggleSwitch
+                            label="Quiet hours"
                             checked={notifications.quietHours}
                             onChange={(c) =>
                               setNotifications({ ...notifications, quietHours: c })
@@ -1029,10 +1059,15 @@ export const SettingsPage: React.FC<{
       {/* Invite Member Modal */}
       {isInviteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl border border-[#efede8] p-6 max-w-md w-full shadow-modal animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea]">
-              <div>
-                <h3 className="text-base font-bold text-[#1a1a18]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invite-member-title"
+            className="bg-white rounded-3xl border border-[#efede8] p-4 sm:p-6 max-w-md w-full max-h-[min(90dvh,640px)] overflow-y-auto shadow-modal animate-in fade-in zoom-in-95"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#f0eeea] gap-2">
+              <div className="min-w-0">
+                <h3 id="invite-member-title" className="text-base font-bold text-[#1a1a18]">
                   Invite Team Member
                 </h3>
                 <p className="text-xs text-[#8f8f8e] mt-0.5">
@@ -1040,8 +1075,9 @@ export const SettingsPage: React.FC<{
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsInviteOpen(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#8f8f8e] hover:text-[#1a1a18] hover:bg-[#efede8] transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[#8f8f8e] hover:text-[#1a1a18] hover:bg-[#efede8] transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1106,7 +1142,7 @@ export const SettingsPage: React.FC<{
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#f0eeea]">
+              <div className="flex items-center justify-end gap-2 flex-wrap pt-3 border-t border-[#f0eeea]">
                 <button
                   type="button"
                   onClick={() => setIsInviteOpen(false)}

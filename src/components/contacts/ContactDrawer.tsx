@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@ziqx/react-comps';
 import {
   X,
@@ -35,6 +35,13 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Contact>>({});
+
+  useEffect(() => {
+    setIsEditing(false);
+    setEditForm({});
+    setIsAddingNote(false);
+    setNewNote('');
+  }, [contact?.id]);
 
   if (!contact) return null;
 
@@ -72,9 +79,20 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[480px] md:w-[500px] bg-white shadow-drawer border-l border-[#efede8] flex flex-col justify-between animate-in slide-in-from-right duration-200">
+    <>
+      <div
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs"
+        onClick={onClose}
+        aria-hidden
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={contact.name}
+        className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] md:w-[500px] max-w-full bg-white shadow-drawer border-l border-[#efede8] flex flex-col justify-between animate-in slide-in-from-right duration-200 pb-[env(safe-area-inset-bottom)]"
+      >
       {/* Content */}
-      <div className="curve-scroll p-6 overflow-y-auto flex-1">
+      <div className="curve-scroll p-4 sm:p-6 overflow-y-auto flex-1">
         {/* Header with Avatar and Close */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3.5">
@@ -105,6 +123,8 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
           </div>
 
           <button
+            type="button"
+            aria-label="Close contact drawer"
             onClick={onClose}
             className="w-8 h-8 rounded-xl border border-[#e5e5e0] flex items-center justify-center text-[#5b5b5a] hover:text-[#1a1a18] hover:bg-[#f4f3ef] transition-colors"
           >
@@ -159,7 +179,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
         </div>
 
         {/* Details 2-Column Grid */}
-        <div className="grid grid-cols-2 gap-y-4 gap-x-6 py-2 border-t border-[#f0eeea] text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 py-2 border-t border-[#f0eeea] text-xs">
           <div>
             <p className="text-[#8f8f8e] mb-1">Phone</p>
             {isEditing ? (
@@ -275,6 +295,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
             <label className="text-xs font-semibold text-[#5b5b5a]">Notes</label>
             {!isAddingNote && (
               <button
+                type="button"
                 onClick={() => setIsAddingNote(true)}
                 className="text-[11px] font-semibold text-[#0b5c46] hover:underline"
               >
@@ -332,5 +353,6 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };

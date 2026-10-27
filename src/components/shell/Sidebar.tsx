@@ -20,6 +20,7 @@ export type TabType = 'inbox' | 'contacts' | 'templates' | 'settings';
 interface SidebarProps {
   inboxBadgeCount: number;
   onNavigate?: () => void;
+  className?: string;
 }
 
 const navItems: {
@@ -64,13 +65,16 @@ function activeTabFromPath(pathname: string): TabType {
 export const Sidebar: React.FC<SidebarProps> = ({
   inboxBadgeCount,
   onNavigate,
+  className = '',
 }) => {
   const pathname = usePathname();
   const activeTab = activeTabFromPath(pathname);
   const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <aside className="w-[248px] shrink-0 h-full bg-white rounded-[24px] border border-[#eeece7] pl-[14px] pr-4 pt-[18px] pb-3 flex flex-col select-none">
+    <aside
+      className={`w-[248px] shrink-0 h-full bg-white rounded-[24px] border border-[#eeece7] pl-[14px] pr-4 pt-[18px] pb-3 flex flex-col select-none ${className}`}
+    >
       <div className="flex items-start gap-[10px] h-[70px] pl-2 pt-1.5 shrink-0">
         <div className="size-[42px] rounded-xl bg-[#1a1a18] flex items-center justify-center text-white shrink-0">
           <MessageSquareText className="size-[22px]" strokeWidth={2} />
@@ -160,6 +164,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <button
+          type="button"
+          aria-expanded={profileOpen}
+          aria-haspopup="true"
           onClick={() => setProfileOpen(!profileOpen)}
           className="w-full h-[54px] rounded-[14px] pl-2 pr-1 flex items-center gap-[10px] hover:bg-[#faf9f7] transition-colors text-left"
         >
