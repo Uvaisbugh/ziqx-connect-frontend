@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
@@ -11,7 +10,8 @@ export default {
       },
       colors: {
         ziqx: {
-          bg: '#f4f3ef',
+          bg: '#f8f7f4',
+          thread: '#e7e4dc',
           card: '#ffffff',
           border: '#efede8',
           'border-subtle': '#f0eeea',
